@@ -388,6 +388,7 @@ class _SupplyRowState extends State<SupplyRow> with SingleTickerProviderStateMix
                               Expanded(
                                 child: TextField(
                                   controller: _quantityController,
+                                  keyboardType: TextInputType.number,
                                   onChanged: (value) {
                                     final parsed = int.tryParse(strip(value)) ?? 0;
                                     _updateSupplyBloc.add(
@@ -423,6 +424,7 @@ class _SupplyRowState extends State<SupplyRow> with SingleTickerProviderStateMix
                           Expanded(
                             child: TextField(
                               controller: _soldController,
+                              keyboardType: TextInputType.number,
                               onChanged: (value) {
                                 final parsed = int.tryParse(strip(value)) ?? 0;
                                 _updateSupplyBloc.add(
@@ -456,6 +458,7 @@ class _SupplyRowState extends State<SupplyRow> with SingleTickerProviderStateMix
                           Expanded(
                             child: TextField(
                               controller: _trashedController,
+                              keyboardType: TextInputType.number,
                               onChanged: (value) {
                                 final parsed = int.tryParse(strip(value)) ?? 0;
                                 _updateSupplyBloc.add(
