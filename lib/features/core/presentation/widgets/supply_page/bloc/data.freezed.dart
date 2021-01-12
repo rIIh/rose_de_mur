@@ -26,7 +26,7 @@ class _$SupplyPageEventTearOff {
   }
 
 // ignore: unused_element
-  _Remove remove(Supply key) {
+  _Remove remove(String key) {
     return _Remove(
       key,
     );
@@ -63,7 +63,7 @@ mixin _$SupplyPageEvent {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -72,7 +72,7 @@ mixin _$SupplyPageEvent {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -175,7 +175,7 @@ class _$_SetDate implements _SetDate {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -194,7 +194,7 @@ class _$_SetDate implements _SetDate {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -290,7 +290,7 @@ class _$_Add implements _Add {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -309,7 +309,7 @@ class _$_Add implements _Add {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -368,9 +368,7 @@ abstract class _Add implements SupplyPageEvent {
 abstract class _$RemoveCopyWith<$Res> {
   factory _$RemoveCopyWith(_Remove value, $Res Function(_Remove) then) =
       __$RemoveCopyWithImpl<$Res>;
-  $Res call({Supply key});
-
-  $SupplyCopyWith<$Res> get key;
+  $Res call({String key});
 }
 
 /// @nodoc
@@ -387,18 +385,8 @@ class __$RemoveCopyWithImpl<$Res> extends _$SupplyPageEventCopyWithImpl<$Res>
     Object key = freezed,
   }) {
     return _then(_Remove(
-      key == freezed ? _value.key : key as Supply,
+      key == freezed ? _value.key : key as String,
     ));
-  }
-
-  @override
-  $SupplyCopyWith<$Res> get key {
-    if (_value.key == null) {
-      return null;
-    }
-    return $SupplyCopyWith<$Res>(_value.key, (value) {
-      return _then(_value.copyWith(key: value));
-    });
   }
 }
 
@@ -407,7 +395,7 @@ class _$_Remove implements _Remove {
   const _$_Remove(this.key) : assert(key != null);
 
   @override
-  final Supply key;
+  final String key;
 
   @override
   String toString() {
@@ -435,7 +423,7 @@ class _$_Remove implements _Remove {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -454,7 +442,7 @@ class _$_Remove implements _Remove {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -506,9 +494,9 @@ class _$_Remove implements _Remove {
 }
 
 abstract class _Remove implements SupplyPageEvent {
-  const factory _Remove(Supply key) = _$_Remove;
+  const factory _Remove(String key) = _$_Remove;
 
-  Supply get key;
+  String get key;
   _$RemoveCopyWith<_Remove> get copyWith;
 }
 
@@ -593,7 +581,7 @@ class _$_Update implements _Update {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -612,7 +600,7 @@ class _$_Update implements _Update {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -733,7 +721,7 @@ class _$_Save implements _Save {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -752,7 +740,7 @@ class _$_Save implements _Save {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),
@@ -848,7 +836,7 @@ class _$_Sync implements _Sync {
   TResult when<TResult extends Object>({
     @required TResult setDate(DateTime date),
     @required TResult add(),
-    @required TResult remove(Supply key),
+    @required TResult remove(String key),
     @required TResult update(String key, Supply supply),
     @required TResult save(Completer<dynamic> completer),
     @required TResult sync(),
@@ -867,7 +855,7 @@ class _$_Sync implements _Sync {
   TResult maybeWhen<TResult extends Object>({
     TResult setDate(DateTime date),
     TResult add(),
-    TResult remove(Supply key),
+    TResult remove(String key),
     TResult update(String key, Supply supply),
     TResult save(Completer<dynamic> completer),
     TResult sync(),

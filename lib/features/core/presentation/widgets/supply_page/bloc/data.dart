@@ -13,7 +13,7 @@ abstract class SupplyPageEvent with _$SupplyPageEvent {
 
   const factory SupplyPageEvent.add() = _Add;
 
-  const factory SupplyPageEvent.remove(Supply key) = _Remove;
+  const factory SupplyPageEvent.remove(String key) = _Remove;
 
   const factory SupplyPageEvent.update(String key, Supply supply) = _Update;
 

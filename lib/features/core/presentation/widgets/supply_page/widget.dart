@@ -96,7 +96,7 @@ class _SupplyPageWidgetState extends State<SupplyPageWidget> with ScopeStateMixi
                                   onQuantityChange: (quantity) => _bloc.add(
                                     SupplyPageEvent.update(e.key, e.value.copyWith(quantity: quantity)),
                                   ),
-                                  onRemove: () => _bloc.add(SupplyPageEvent.remove(e.value)),
+                                  onRemove: () => _bloc.add(SupplyPageEvent.remove(e.key)),
                                 ),
                               ),
                         ).toList(),
