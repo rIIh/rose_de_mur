@@ -243,33 +243,40 @@ class _HomeGridWidgetState extends State<HomeGridWidget> with ScopeStateMixin, S
                                                               .toLowerCase()
                                                               .contains(controller.text.toLowerCase()))
                                                           .map(
-                                                            (e) => IntrinsicHeight(
-                                                              child: Row(
-                                                                children: intersperse(
-                                                                  const VerticalDivider(),
-                                                                  [
-                                                                    Expanded(
-                                                                      child: Padding(
-                                                                        padding: EdgeInsets.symmetric(
-                                                                            horizontal: 12.0, vertical: 16.0),
-                                                                        child: Text(e.plant.name),
+                                                            (e) => GestureDetector(
+                                                              onTap: () => Navigator.of(context).push(
+                                                                MaterialPageRoute(
+                                                                  builder: (context) => DetailsWidget(plant: e.plant),
+                                                                ),
+                                                              ),
+                                                              child: IntrinsicHeight(
+                                                                child: Row(
+                                                                  children: intersperse(
+                                                                    const VerticalDivider(),
+                                                                    [
+                                                                      Expanded(
+                                                                        child: Padding(
+                                                                          padding: EdgeInsets.symmetric(
+                                                                              horizontal: 12.0, vertical: 16.0),
+                                                                          child: Text(e.plant.name),
+                                                                        ),
                                                                       ),
-                                                                    ),
-                                                                    Container(
-                                                                      width: 52,
-                                                                      child: Center(
-                                                                          child:
-                                                                              Text('${e.price.toStringAsFixed(0)} р.')),
-                                                                    ),
-                                                                    Container(
-                                                                      width: 52,
-                                                                      child: Center(
-                                                                        child: Text(
-                                                                            '${e.quantity - e.sold - e.trashed} ш.'),
+                                                                      Container(
+                                                                        width: 52,
+                                                                        child: Center(
+                                                                            child: Text(
+                                                                                '${e.price.toStringAsFixed(0)} р.')),
                                                                       ),
-                                                                    ),
-                                                                  ],
-                                                                ).toList(),
+                                                                      Container(
+                                                                        width: 52,
+                                                                        child: Center(
+                                                                          child: Text(
+                                                                              '${e.quantity - e.sold - e.trashed} ш.'),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ).toList(),
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
