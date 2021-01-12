@@ -5,6 +5,7 @@ import 'package:rose_de_mur/features/core/domain/entity/supply.dart';
 abstract class SupplyRepository {
   Future<Either<Failure, Iterable<Supply>>> read();
   Future<Either<Failure, Stream<Iterable<Supply>>>> watch();
+  Future<Either<Failure, Stream<Supply>>> watchSingle(String id);
   Future<Either<Failure, Supply>> find(String id);
   Future<Either<Failure, Supply>> create(Supply supply);
   Future<Either<Failure, Supply>> update(Supply supply);

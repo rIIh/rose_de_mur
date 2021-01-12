@@ -154,7 +154,7 @@ class _$PlansGridStateTearOff {
   }
 
 // ignore: unused_element
-  _HasData hasData(Iterable<Plant> plants) {
+  _HasData hasData(Stream<Iterable<Plant>> plants) {
     return _HasData(
       plants,
     );
@@ -177,13 +177,13 @@ mixin _$PlansGridState {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult loading(),
-    @required TResult hasData(Iterable<Plant> plants),
+    @required TResult hasData(Stream<Iterable<Plant>> plants),
     @required TResult failed(Failure failure),
   });
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult loading(),
-    TResult hasData(Iterable<Plant> plants),
+    TResult hasData(Stream<Iterable<Plant>> plants),
     TResult failed(Failure failure),
     @required TResult orElse(),
   });
@@ -256,7 +256,7 @@ class _$_Loading implements _Loading {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult loading(),
-    @required TResult hasData(Iterable<Plant> plants),
+    @required TResult hasData(Stream<Iterable<Plant>> plants),
     @required TResult failed(Failure failure),
   }) {
     assert(loading != null);
@@ -269,7 +269,7 @@ class _$_Loading implements _Loading {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult loading(),
-    TResult hasData(Iterable<Plant> plants),
+    TResult hasData(Stream<Iterable<Plant>> plants),
     TResult failed(Failure failure),
     @required TResult orElse(),
   }) {
@@ -317,7 +317,7 @@ abstract class _Loading implements PlansGridState {
 abstract class _$HasDataCopyWith<$Res> {
   factory _$HasDataCopyWith(_HasData value, $Res Function(_HasData) then) =
       __$HasDataCopyWithImpl<$Res>;
-  $Res call({Iterable<Plant> plants});
+  $Res call({Stream<Iterable<Plant>> plants});
 }
 
 /// @nodoc
@@ -334,7 +334,7 @@ class __$HasDataCopyWithImpl<$Res> extends _$PlansGridStateCopyWithImpl<$Res>
     Object plants = freezed,
   }) {
     return _then(_HasData(
-      plants == freezed ? _value.plants : plants as Iterable<Plant>,
+      plants == freezed ? _value.plants : plants as Stream<Iterable<Plant>>,
     ));
   }
 }
@@ -344,7 +344,7 @@ class _$_HasData implements _HasData {
   const _$_HasData(this.plants) : assert(plants != null);
 
   @override
-  final Iterable<Plant> plants;
+  final Stream<Iterable<Plant>> plants;
 
   @override
   String toString() {
@@ -371,7 +371,7 @@ class _$_HasData implements _HasData {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult loading(),
-    @required TResult hasData(Iterable<Plant> plants),
+    @required TResult hasData(Stream<Iterable<Plant>> plants),
     @required TResult failed(Failure failure),
   }) {
     assert(loading != null);
@@ -384,7 +384,7 @@ class _$_HasData implements _HasData {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult loading(),
-    TResult hasData(Iterable<Plant> plants),
+    TResult hasData(Stream<Iterable<Plant>> plants),
     TResult failed(Failure failure),
     @required TResult orElse(),
   }) {
@@ -425,9 +425,9 @@ class _$_HasData implements _HasData {
 }
 
 abstract class _HasData implements PlansGridState {
-  const factory _HasData(Iterable<Plant> plants) = _$_HasData;
+  const factory _HasData(Stream<Iterable<Plant>> plants) = _$_HasData;
 
-  Iterable<Plant> get plants;
+  Stream<Iterable<Plant>> get plants;
   _$HasDataCopyWith<_HasData> get copyWith;
 }
 
@@ -489,7 +489,7 @@ class _$_Failed implements _Failed {
   @optionalTypeArgs
   TResult when<TResult extends Object>({
     @required TResult loading(),
-    @required TResult hasData(Iterable<Plant> plants),
+    @required TResult hasData(Stream<Iterable<Plant>> plants),
     @required TResult failed(Failure failure),
   }) {
     assert(loading != null);
@@ -502,7 +502,7 @@ class _$_Failed implements _Failed {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object>({
     TResult loading(),
-    TResult hasData(Iterable<Plant> plants),
+    TResult hasData(Stream<Iterable<Plant>> plants),
     TResult failed(Failure failure),
     @required TResult orElse(),
   }) {

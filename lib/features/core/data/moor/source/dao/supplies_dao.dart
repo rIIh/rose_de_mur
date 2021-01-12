@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:moor/moor.dart';
 import 'package:rose_de_mur/features/core/data/moor/source/dao/plants_dao.dart';
+import 'package:rose_de_mur/features/core/domain/entity/supply.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../database.dart';
@@ -53,14 +54,44 @@ class SuppliesDao extends DatabaseAccessor<Database> with _$SuppliesDaoMixin {
 
   Stream<Iterable<SupplyModelTuple>> watchMany() {
     final suppliesStream = select(supplyModels).watch();
-    return suppliesStream.switchMap((supplies) async* {
-      final map = <Tuple2<SupplyModel, PlantModelTuple>>[];
-      for (final supply in supplies) {
-        map.add(Tuple2(supply, await _plantsDao.read(supply.plant)));
-      }
-      yield map.map((e) => SupplyModelTuple(e.value2, e.value1));
-    });
+    final plantsStream = _plantsDao.watchMany();
+    return Rx.defer(
+      () => Rx.combineLatest2<Iterable<SupplyModel>, Iterable<PlantModelTuple>, Iterable<SupplyModelTuple>>(
+        suppliesStream,
+        plantsStream,
+        (a, b) => a.map(
+          (e) => SupplyModelTuple(
+            b.firstWhere(
+              (element) => element.plant.id == e.plant,
+            ),
+            e,
+          ),
+        ),
+      ),
+      reusable: true,
+    );
   }
 
-  Future deleteSupply(int id) async => delete(supplyModels).where((tbl) => tbl.id.equals(id));
+  Future<void> deleteSupply(int id) async => (delete(supplyModels)..where((tbl) => tbl.id.equals(id))).go();
+
+  Future<SupplyModelTuple> updateSupply(Supply supply) {
+    return supply.map(
+      (value) => throw StateError('$supply should have metadata'),
+      withMeta: (value) {
+        final model = SupplyModelsCompanion(
+          id: Value(int.tryParse(value.id)),
+          supplied: toValue(value.supplied),
+          quantity: toValue(value.quantity),
+          price: toValue(value.price),
+          updated: toValue(DateTime.now()),
+          sold: toValue(value.sold),
+          trashed: toValue(value.trashed),
+        );
+        (update(supplyModels)..whereSamePrimaryKey(model)).write(model);
+        return read(int.tryParse(value.id));
+      },
+    );
+  }
 }
+
+Value<T> toValue<T>(T object) => object != null ? Value(object) : Value.absent();

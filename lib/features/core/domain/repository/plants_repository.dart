@@ -7,6 +7,8 @@ abstract class PlantsRepository {
 
   Future<Either<Failure, Stream<Iterable<Plant>>>> watch();
 
+  Future<Either<Failure, Stream<Plant>>> watchSingle(String id);
+
   Future<Either<Failure, Plant>> find(String id);
 
   Future<Either<Failure, Plant>> create(Plant plant);

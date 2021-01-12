@@ -1,4 +1,5 @@
 import 'package:moor/moor.dart';
+import 'package:rose_de_mur/features/core/data/model/plant.dart';
 import 'package:rose_de_mur/features/core/data/moor/source/tables.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -6,11 +7,29 @@ import '../database.dart';
 
 part 'plants_dao.g.dart';
 
-class PlantModelTuple {
+class PlantModelTuple implements PlantModelContractWithImages {
   final PlantModel plant;
-  final Iterable<PlantModelImage> images;
+  final Iterable<PlantModelImage> imageModels;
 
-  PlantModelTuple(this.plant, this.images);
+  PlantModelTuple(this.plant, this.imageModels);
+
+  @override
+  DateTime get created => plant.created;
+
+  @override
+  String get description => plant.description;
+
+  @override
+  String get identifier => plant.id.toString();
+
+  @override
+  List<Uint8List> get images => imageModels.map((e) => e.image).toList();
+
+  @override
+  String get name => plant.name;
+
+  @override
+  DateTime get updated => plant.updated;
 }
 
 class PlantModelTupleCompanion {
@@ -84,9 +103,13 @@ class PlantsDao extends DatabaseAccessor<Database> with _$PlantsDaoMixin {
     return await readMany().then((value) => value.firstWhere((element) => element.plant.id == plantId));
   }
 
-  Future<PlantModelTuple> updatePlant(PlantModelsCompanion plant) {
-    update(plantModels).replace(plant);
-    return read(plant.id.value);
+  Future<PlantModelTuple> updatePlant(PlantModelTupleCompanion plant) async {
+    await (update(plantModels)..whereSamePrimaryKey(plant.plant)).write(plant.plant);
+    await (delete(plantModelImages)..where((tbl) => tbl.plant.equals(plant.plant.id.value))).go();
+    for (final image in plant.images) {
+      await into(plantModelImages).insert(image.copyWith(plant: plant.plant.id));
+    }
+    return read(plant.plant.id.value);
   }
 
   Future<void> deletePlant(PlantModelsCompanion plant) async {

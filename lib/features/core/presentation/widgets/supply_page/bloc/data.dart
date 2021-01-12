@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:rose_de_mur/features/core/domain/entity/failure/failure.dart';
@@ -11,11 +13,11 @@ abstract class SupplyPageEvent with _$SupplyPageEvent {
 
   const factory SupplyPageEvent.add() = _Add;
 
-  const factory SupplyPageEvent.remove(String key) = _Remove;
+  const factory SupplyPageEvent.remove(Supply key) = _Remove;
 
   const factory SupplyPageEvent.update(String key, Supply supply) = _Update;
 
-  const factory SupplyPageEvent.save() = _Save;
+  const factory SupplyPageEvent.save({Completer completer}) = _Save;
 
   const factory SupplyPageEvent.sync() = _Sync;
 }

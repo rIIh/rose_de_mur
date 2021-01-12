@@ -45,6 +45,11 @@ dependencies:
   intl: ^0.16.1
   flutter_colorpicker: ^0.3.5
   provider: ^4.3.2+3
+  image_picker: ^0.6.7+17
+  extended_text: ^4.1.0
+  extended_text_field: ^5.0.4
+  expandable: ^4.1.4
+  flutter_stream_listener: ^1.0.0
 
 
 

@@ -13,7 +13,7 @@ abstract class PlantsGridEvent with _$PlantsGridEvent {
 abstract class PlansGridState with _$PlansGridState {
   const factory PlansGridState.loading() = _Loading;
 
-  const factory PlansGridState.hasData(Iterable<Plant> plants) = _HasData;
+  const factory PlansGridState.hasData(Stream<Iterable<Plant>> plants) = _HasData;
 
   const factory PlansGridState.failed(Failure failure) = _Failed;
 }

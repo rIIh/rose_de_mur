@@ -1,14 +1,23 @@
 import 'dart:typed_data';
 
-import 'package:rose_de_mur/features/core/domain/entity/metadata.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class Plant extends ObjectWithMetadata {
-  final String name;
-  final String description;
-  final List<Uint8List> images;
+part 'plant.freezed.dart';
 
-  Plant(this.name, this.description, this.images);
+@freezed
+abstract class Plant with _$Plant {
+  const factory Plant(
+    String name,
+    String description,
+    List<Uint8List> images,
+  ) = _Default;
 
-  Plant.withMeta(this.name, this.description, this.images, {String id, DateTime created, DateTime updated})
-      : super(id: id, created: created, updated: updated);
+  const factory Plant.withMeta(
+    String name,
+    String description,
+    List<Uint8List> images, {
+    String id,
+    DateTime created,
+    DateTime updated,
+  }) = PlantWithMeta;
 }

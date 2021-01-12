@@ -156,11 +156,9 @@ class PlantModelsCompanion extends UpdateCompanion<PlantModel> {
     this.id = const Value.absent(),
     @required String name,
     this.description = const Value.absent(),
-    @required DateTime created,
-    @required DateTime updated,
-  })  : name = Value(name),
-        created = Value(created),
-        updated = Value(updated);
+    this.created = const Value.absent(),
+    this.updated = const Value.absent(),
+  }) : name = Value(name);
   static Insertable<PlantModel> custom({
     Expression<int> id,
     Expression<String> name,
@@ -271,7 +269,7 @@ class $PlantModelsTable extends PlantModels
       'created',
       $tableName,
       false,
-    );
+    )..clientDefault = () => DateTime.now();
   }
 
   final VerificationMeta _updatedMeta = const VerificationMeta('updated');
@@ -283,7 +281,7 @@ class $PlantModelsTable extends PlantModels
       'updated',
       $tableName,
       false,
-    );
+    )..clientDefault = () => DateTime.now();
   }
 
   @override
@@ -318,14 +316,10 @@ class $PlantModelsTable extends PlantModels
     if (data.containsKey('created')) {
       context.handle(_createdMeta,
           created.isAcceptableOrUnknown(data['created'], _createdMeta));
-    } else if (isInserting) {
-      context.missing(_createdMeta);
     }
     if (data.containsKey('updated')) {
       context.handle(_updatedMeta,
           updated.isAcceptableOrUnknown(data['updated'], _updatedMeta));
-    } else if (isInserting) {
-      context.missing(_updatedMeta);
     }
     return context;
   }
@@ -546,6 +540,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
   final int plant;
   final DateTime supplied;
   final int quantity;
+  final int sold;
+  final int trashed;
   final double price;
   final DateTime created;
   final DateTime updated;
@@ -554,6 +550,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
       @required this.plant,
       @required this.supplied,
       @required this.quantity,
+      @required this.sold,
+      @required this.trashed,
       @required this.price,
       @required this.created,
       @required this.updated});
@@ -570,6 +568,9 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
           .mapFromDatabaseResponse(data['${effectivePrefix}supplied']),
       quantity:
           intType.mapFromDatabaseResponse(data['${effectivePrefix}quantity']),
+      sold: intType.mapFromDatabaseResponse(data['${effectivePrefix}sold']),
+      trashed:
+          intType.mapFromDatabaseResponse(data['${effectivePrefix}trashed']),
       price:
           doubleType.mapFromDatabaseResponse(data['${effectivePrefix}price']),
       created: dateTimeType
@@ -592,6 +593,12 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
     }
     if (!nullToAbsent || quantity != null) {
       map['quantity'] = Variable<int>(quantity);
+    }
+    if (!nullToAbsent || sold != null) {
+      map['sold'] = Variable<int>(sold);
+    }
+    if (!nullToAbsent || trashed != null) {
+      map['trashed'] = Variable<int>(trashed);
     }
     if (!nullToAbsent || price != null) {
       map['price'] = Variable<double>(price);
@@ -616,6 +623,10 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
       quantity: quantity == null && nullToAbsent
           ? const Value.absent()
           : Value(quantity),
+      sold: sold == null && nullToAbsent ? const Value.absent() : Value(sold),
+      trashed: trashed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trashed),
       price:
           price == null && nullToAbsent ? const Value.absent() : Value(price),
       created: created == null && nullToAbsent
@@ -635,6 +646,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
       plant: serializer.fromJson<int>(json['plant']),
       supplied: serializer.fromJson<DateTime>(json['supplied']),
       quantity: serializer.fromJson<int>(json['quantity']),
+      sold: serializer.fromJson<int>(json['sold']),
+      trashed: serializer.fromJson<int>(json['trashed']),
       price: serializer.fromJson<double>(json['price']),
       created: serializer.fromJson<DateTime>(json['created']),
       updated: serializer.fromJson<DateTime>(json['updated']),
@@ -648,6 +661,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
       'plant': serializer.toJson<int>(plant),
       'supplied': serializer.toJson<DateTime>(supplied),
       'quantity': serializer.toJson<int>(quantity),
+      'sold': serializer.toJson<int>(sold),
+      'trashed': serializer.toJson<int>(trashed),
       'price': serializer.toJson<double>(price),
       'created': serializer.toJson<DateTime>(created),
       'updated': serializer.toJson<DateTime>(updated),
@@ -659,6 +674,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
           int plant,
           DateTime supplied,
           int quantity,
+          int sold,
+          int trashed,
           double price,
           DateTime created,
           DateTime updated}) =>
@@ -667,6 +684,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
         plant: plant ?? this.plant,
         supplied: supplied ?? this.supplied,
         quantity: quantity ?? this.quantity,
+        sold: sold ?? this.sold,
+        trashed: trashed ?? this.trashed,
         price: price ?? this.price,
         created: created ?? this.created,
         updated: updated ?? this.updated,
@@ -678,6 +697,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
           ..write('plant: $plant, ')
           ..write('supplied: $supplied, ')
           ..write('quantity: $quantity, ')
+          ..write('sold: $sold, ')
+          ..write('trashed: $trashed, ')
           ..write('price: $price, ')
           ..write('created: $created, ')
           ..write('updated: $updated')
@@ -694,8 +715,12 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
               supplied.hashCode,
               $mrjc(
                   quantity.hashCode,
-                  $mrjc(price.hashCode,
-                      $mrjc(created.hashCode, updated.hashCode)))))));
+                  $mrjc(
+                      sold.hashCode,
+                      $mrjc(
+                          trashed.hashCode,
+                          $mrjc(price.hashCode,
+                              $mrjc(created.hashCode, updated.hashCode)))))))));
   @override
   bool operator ==(dynamic other) =>
       identical(this, other) ||
@@ -704,6 +729,8 @@ class SupplyModel extends DataClass implements Insertable<SupplyModel> {
           other.plant == this.plant &&
           other.supplied == this.supplied &&
           other.quantity == this.quantity &&
+          other.sold == this.sold &&
+          other.trashed == this.trashed &&
           other.price == this.price &&
           other.created == this.created &&
           other.updated == this.updated);
@@ -714,6 +741,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
   final Value<int> plant;
   final Value<DateTime> supplied;
   final Value<int> quantity;
+  final Value<int> sold;
+  final Value<int> trashed;
   final Value<double> price;
   final Value<DateTime> created;
   final Value<DateTime> updated;
@@ -722,6 +751,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
     this.plant = const Value.absent(),
     this.supplied = const Value.absent(),
     this.quantity = const Value.absent(),
+    this.sold = const Value.absent(),
+    this.trashed = const Value.absent(),
     this.price = const Value.absent(),
     this.created = const Value.absent(),
     this.updated = const Value.absent(),
@@ -731,20 +762,22 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
     @required int plant,
     @required DateTime supplied,
     @required int quantity,
+    this.sold = const Value.absent(),
+    this.trashed = const Value.absent(),
     @required double price,
-    @required DateTime created,
-    @required DateTime updated,
+    this.created = const Value.absent(),
+    this.updated = const Value.absent(),
   })  : plant = Value(plant),
         supplied = Value(supplied),
         quantity = Value(quantity),
-        price = Value(price),
-        created = Value(created),
-        updated = Value(updated);
+        price = Value(price);
   static Insertable<SupplyModel> custom({
     Expression<int> id,
     Expression<int> plant,
     Expression<DateTime> supplied,
     Expression<int> quantity,
+    Expression<int> sold,
+    Expression<int> trashed,
     Expression<double> price,
     Expression<DateTime> created,
     Expression<DateTime> updated,
@@ -754,6 +787,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
       if (plant != null) 'plant': plant,
       if (supplied != null) 'supplied': supplied,
       if (quantity != null) 'quantity': quantity,
+      if (sold != null) 'sold': sold,
+      if (trashed != null) 'trashed': trashed,
       if (price != null) 'price': price,
       if (created != null) 'created': created,
       if (updated != null) 'updated': updated,
@@ -765,6 +800,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
       Value<int> plant,
       Value<DateTime> supplied,
       Value<int> quantity,
+      Value<int> sold,
+      Value<int> trashed,
       Value<double> price,
       Value<DateTime> created,
       Value<DateTime> updated}) {
@@ -773,6 +810,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
       plant: plant ?? this.plant,
       supplied: supplied ?? this.supplied,
       quantity: quantity ?? this.quantity,
+      sold: sold ?? this.sold,
+      trashed: trashed ?? this.trashed,
       price: price ?? this.price,
       created: created ?? this.created,
       updated: updated ?? this.updated,
@@ -794,6 +833,12 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
     if (quantity.present) {
       map['quantity'] = Variable<int>(quantity.value);
     }
+    if (sold.present) {
+      map['sold'] = Variable<int>(sold.value);
+    }
+    if (trashed.present) {
+      map['trashed'] = Variable<int>(trashed.value);
+    }
     if (price.present) {
       map['price'] = Variable<double>(price.value);
     }
@@ -813,6 +858,8 @@ class SupplyModelsCompanion extends UpdateCompanion<SupplyModel> {
           ..write('plant: $plant, ')
           ..write('supplied: $supplied, ')
           ..write('quantity: $quantity, ')
+          ..write('sold: $sold, ')
+          ..write('trashed: $trashed, ')
           ..write('price: $price, ')
           ..write('created: $created, ')
           ..write('updated: $updated')
@@ -868,6 +915,24 @@ class $SupplyModelsTable extends SupplyModels
     );
   }
 
+  final VerificationMeta _soldMeta = const VerificationMeta('sold');
+  GeneratedIntColumn _sold;
+  @override
+  GeneratedIntColumn get sold => _sold ??= _constructSold();
+  GeneratedIntColumn _constructSold() {
+    return GeneratedIntColumn('sold', $tableName, false,
+        defaultValue: Constant(0));
+  }
+
+  final VerificationMeta _trashedMeta = const VerificationMeta('trashed');
+  GeneratedIntColumn _trashed;
+  @override
+  GeneratedIntColumn get trashed => _trashed ??= _constructTrashed();
+  GeneratedIntColumn _constructTrashed() {
+    return GeneratedIntColumn('trashed', $tableName, false,
+        defaultValue: Constant(0));
+  }
+
   final VerificationMeta _priceMeta = const VerificationMeta('price');
   GeneratedRealColumn _price;
   @override
@@ -889,7 +954,7 @@ class $SupplyModelsTable extends SupplyModels
       'created',
       $tableName,
       false,
-    );
+    )..clientDefault = () => DateTime.now();
   }
 
   final VerificationMeta _updatedMeta = const VerificationMeta('updated');
@@ -901,12 +966,12 @@ class $SupplyModelsTable extends SupplyModels
       'updated',
       $tableName,
       false,
-    );
+    )..clientDefault = () => DateTime.now();
   }
 
   @override
   List<GeneratedColumn> get $columns =>
-      [id, plant, supplied, quantity, price, created, updated];
+      [id, plant, supplied, quantity, sold, trashed, price, created, updated];
   @override
   $SupplyModelsTable get asDslTable => this;
   @override
@@ -939,6 +1004,14 @@ class $SupplyModelsTable extends SupplyModels
     } else if (isInserting) {
       context.missing(_quantityMeta);
     }
+    if (data.containsKey('sold')) {
+      context.handle(
+          _soldMeta, sold.isAcceptableOrUnknown(data['sold'], _soldMeta));
+    }
+    if (data.containsKey('trashed')) {
+      context.handle(_trashedMeta,
+          trashed.isAcceptableOrUnknown(data['trashed'], _trashedMeta));
+    }
     if (data.containsKey('price')) {
       context.handle(
           _priceMeta, price.isAcceptableOrUnknown(data['price'], _priceMeta));
@@ -948,14 +1021,10 @@ class $SupplyModelsTable extends SupplyModels
     if (data.containsKey('created')) {
       context.handle(_createdMeta,
           created.isAcceptableOrUnknown(data['created'], _createdMeta));
-    } else if (isInserting) {
-      context.missing(_createdMeta);
     }
     if (data.containsKey('updated')) {
       context.handle(_updatedMeta,
           updated.isAcceptableOrUnknown(data['updated'], _updatedMeta));
-    } else if (isInserting) {
-      context.missing(_updatedMeta);
     }
     return context;
   }

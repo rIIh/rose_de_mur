@@ -1,77 +1,145 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:dartz/dartz.dart';
+import 'package:rose_de_mur/features/core/data/memory/repository/plants_repository.dart';
+import 'package:rose_de_mur/features/core/data/memory/source/memory_source.dart';
+import 'package:rose_de_mur/features/core/data/model/memory_supply_model.dart';
+import 'package:rose_de_mur/features/core/data/model/plant.dart';
+import 'package:rose_de_mur/features/core/data/model/supply_model.dart';
 import 'package:rose_de_mur/features/core/domain/entity/failure/failure.dart';
 import 'package:rose_de_mur/features/core/domain/entity/supply.dart';
+import 'package:rose_de_mur/features/core/domain/repository/plants_repository.dart';
 import 'package:rose_de_mur/features/core/domain/repository/supply_repository.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:uuid/uuid.dart';
+
+Future<Supply> _modelToEntity(SupplyModelContract model, MemorySource source) async => Supply.withMeta(
+      await source.getPlant(model.plantIdentifier).then((value) => plantModelToEntity(value)),
+      model.supplied,
+      model.quantity,
+      model.sold,
+      model.trashed,
+      model.price,
+      updated: model.updated,
+      created: model.created,
+      id: model.identifier,
+    );
+
+Supply _modelToEntitySync(SupplyModelContract model, PlantModelContractWithImages plant) => Supply.withMeta(
+      plantModelToEntity(plant),
+      model.supplied,
+      model.quantity,
+      model.sold,
+      model.trashed,
+      model.price,
+      updated: model.updated,
+      created: model.created,
+      id: model.identifier,
+    );
 
 class SupplyRepositoryInMemoryImpl implements SupplyRepository {
-  var _supplies = BehaviorSubject.seeded(BuiltList<Supply>(<Supply>[]));
+  final MemorySource _source;
+  final PlantsRepository _plantsRepository;
+
+  SupplyRepositoryInMemoryImpl(this._source, this._plantsRepository);
 
   @override
   Future<Either<Failure, Supply>> create(Supply supply) async {
-    final model = Supply.withMeta(
-      supply.plant,
-      supply.supplied,
-      supply.quantity,
-      supply.price,
-      id: Uuid().v4(),
-      created: DateTime.now(),
-      updated: DateTime.now(),
+    var plant = await supply.plant.map(
+      (value) async => await _plantsRepository.create(value).then((value) => value.getOrElse(() => null)),
+      withMeta: (value) async => value,
     );
-    _supplies.add(
-      _supplies.value.rebuild(
-        (list) => list
-          ..add(model)
-          ..sort((s1, s2) => s1.supplied.compareTo(s2.supplied)),
+    if (plant == null) {
+      return Left(Failure(StateError('Something goes wrong')));
+    }
+    final result = await _source.createSupply(
+      SupplyModelMemoryConstructorImpl(
+        supplied: supply.supplied,
+        quantity: supply.quantity,
+        price: supply.price,
+        plantIdentifier: plant.map(
+          (value) => null,
+          withMeta: (value) => value.id,
+        ),
       ),
     );
-
-    return Right(model);
+    return Right(await _modelToEntity(result, _source));
   }
 
   @override
   Future<Either<Failure, void>> delete(String id) async {
-    if (_supplies.value.map((e) => e.id).contains(id) == false) {
-      return Left(Failure(StateError('Supply($id) not found')));
-    }
-    _supplies.add(
-      _supplies.value.rebuild(
-        (list) => list..removeWhere((supply) => supply.id == id),
-      ),
-    );
+    await _source.removeSupply(id);
     return Right(null);
   }
 
   @override
   Future<Either<Failure, Supply>> find(String id) async {
-    final result = _supplies.value.firstWhere(
-      (supply) => supply.id == id,
-      orElse: null,
-    );
+    final result = await _source.getSupply(id);
 
     if (result == null) {
       return Left(Failure(
         StateError('supply($id) not found'),
       ));
     } else {
-      return Right(result);
+      return Right(await _modelToEntity(result, _source));
     }
   }
 
   @override
-  Future<Either<Failure, Iterable<Supply>>> read() async => Right(_supplies.value.toList());
+  Future<Either<Failure, Iterable<Supply>>> read() async => Right(
+        await _source.getManySupplies().then(
+              (value) => Future.wait(value.map((e) => _modelToEntity(e, _source))).then((value) => value.toList()),
+            ),
+      );
 
   @override
   Future<Either<Failure, Supply>> update(Supply supply) async {
-    assert(supply.id != null);
-    _supplies.add(_supplies.value.rebuild((list) => list
-      ..removeWhere((_supply) => _supply.id == supply.id)
-      ..add(supply)));
-    return Right(supply);
+    return supply.map(
+      (value) async => Left(Failure(StateError('$supply should have meta information'))),
+      withMeta: (value) async {
+        final result = await _source.updateSupply(SupplyModelMemoryUpdateImpl(
+          value.id,
+          plantIdentifier: value.plant.map(
+            (value) => null,
+            withMeta: (value) => value.id,
+          ),
+          price: supply.price,
+          quantity: supply.quantity,
+          sold: supply.sold,
+          trashed: supply.trashed,
+          supplied: supply.supplied,
+        ));
+        return Right(await _modelToEntity(result, _source));
+      },
+    );
   }
 
   @override
-  Future<Either<Failure, Stream<Iterable<Supply>>>> watch() async => Right(_supplies.map((event) => event.toList()));
+  Future<Either<Failure, Stream<Iterable<Supply>>>> watch() async {
+    final supplies = _source.watchManySupplies();
+    final plants = _source.watchManyPlants();
+    // final zipped = Rx.zip2<Iterable<SupplyModelContract>, Iterable<PlantModelContractWithImages>, Iterable<Supply>>(
+    //   supplies,
+    //   plants,
+    //   (a, b) => a.map(
+    //     (e) => _modelToEntitySync(
+    //       e,
+    //       b.firstWhere((element) => element.identifier == e.plantIdentifier),
+    //     ),
+    //   ),
+    // ).asBroadcastStream();
+
+    final zipped = supplies.withLatestFrom(
+        plants,
+        (t, s) => t.map(
+              (e) => _modelToEntitySync(
+                e,
+                s.firstWhere((element) => element.identifier == e.plantIdentifier),
+              ),
+            ));
+
+    return Right(zipped);
+  }
+
+  @override
+  Future<Either<Failure, Stream<Supply>>> watchSingle(String id) async => Right(
+        _source.watchSupply(id).asyncMap((event) => _modelToEntity(event, _source)),
+      );
 }

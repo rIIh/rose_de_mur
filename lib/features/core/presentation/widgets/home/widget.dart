@@ -1,17 +1,24 @@
+import 'package:expandable/expandable.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flushbar/flushbar_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_portal/flutter_portal.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:intersperse/intersperse.dart';
+import 'package:intl/intl.dart';
 import 'package:koin_flutter/koin_flutter.dart';
 import 'package:rose_de_mur/features/core/domain/entity/plant.dart';
+import 'package:rose_de_mur/features/core/domain/entity/supply.dart';
+import 'package:rose_de_mur/features/core/presentation/router/router.dart';
 import 'package:rose_de_mur/features/core/presentation/widgets/app_bar/widget.dart';
 import 'package:rose_de_mur/features/core/presentation/widgets/custom_button/custom_button.dart';
+import 'package:rose_de_mur/features/core/presentation/widgets/details/widget.dart';
 import 'package:rose_de_mur/features/core/presentation/widgets/home/supplies_bloc/bloc.dart';
 import 'package:rose_de_mur/features/core/presentation/widgets/home/supplies_bloc/data.dart';
 import 'package:rose_de_mur/features/core/presentation/widgets/scaffold/widget.dart';
+import 'package:rose_de_mur/features/core/presentation/widgets/supply_page/widget.dart';
 
 import 'plants_bloc/bloc.dart';
 import 'plants_bloc/data.dart';
@@ -43,10 +50,15 @@ class _HomeGridWidgetState extends State<HomeGridWidget> with ScopeStateMixin, S
     _suppliesBloc = currentScope.get();
     _plantsSearchController = TextEditingController();
     _suppliesSearchController = TextEditingController();
+
+    _plantsSearchController.addListener(() => setState(() {}));
+    _suppliesSearchController.addListener(() => setState(() {}));
+
     _tabController = TabController(length: HomeTab.values.length, vsync: this)
       ..addListener(() => setState(() {
             tab = HomeTab.values[_tabController.index];
           }));
+    tab = HomeTab.values[_tabController.index];
     super.initState();
   }
 
@@ -60,7 +72,7 @@ class _HomeGridWidgetState extends State<HomeGridWidget> with ScopeStateMixin, S
 
   @override
   Widget build(BuildContext context) {
-    var controller;
+    TextEditingController controller;
     if (tab == HomeTab.all) {
       controller = _plantsSearchController;
     } else if (tab == HomeTab.supplies) {
@@ -138,64 +150,148 @@ class _HomeGridWidgetState extends State<HomeGridWidget> with ScopeStateMixin, S
                   )
                 ],
               ),
-              body: PortalEntry(
-                childAnchor: Alignment.bottomRight,
-                portalAnchor: Alignment.bottomRight,
-                portal: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    border: Border.all(),
-                  ),
-                  child: CustomButton(
-                    onPressed: () {},
-                    padding: const EdgeInsets.all(12.0),
-                    child: Icon(CupertinoIcons.add),
-                  ),
-                ),
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    BlocBuilder<PlantsBloc, PlansGridState>(
-                      buildWhen: (previous, current) => current.maybeMap(
-                        hasData: (value) => true,
-                        orElse: () => false,
-                      ),
-                      builder: (context, state) => PlantsWidget(
-                        plants: state.maybeMap(
-                          hasData: (value) => value.plants,
-                          orElse: () => [],
-                        ),
-                      ),
+              fab: FloatingActionButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed(Routes.supply);
+                },
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                child: Icon(CupertinoIcons.add),
+              ),
+              body: TabBarView(
+                controller: _tabController,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  PlantsWidget(search: controller?.text),
+                  BlocBuilder<SuppliesBloc, SuppliesState>(
+                    buildWhen: (previous, current) => current.maybeMap(
+                      hasData: (value) => true,
+                      orElse: () => false,
                     ),
-                    BlocBuilder<SuppliesBloc, SuppliesState>(
-                      buildWhen: (previous, current) => current.maybeMap(
-                        hasData: (value) => true,
-                        orElse: () => false,
-                      ),
-                      builder: (context, state) {
-                        if (state.maybeMap(
-                          orElse: () => false,
-                          hasData: (value) => value.supplies.isEmpty,
-                        )) {
-                          return Center(
-                            child: Text('ПУСТЕНЬКО'),
-                          );
-                        }
-                        return Column(
-                          children: state.maybeMap(
-                            hasData: (value) {
-                              return value.supplies.map((e) => Text(e.id)).toList();
-                            },
-                            orElse: () => [],
+                    builder: (context, state) {
+                      return state.maybeMap(
+                        hasData: (value) => StreamBuilder<Map<String, Iterable<Supply>>>(
+                          stream: value.supplies.map(
+                            (event) => groupBy<Supply, String>(
+                              event,
+                              (supply) => DateFormat('D MMM yyyy').format(supply.supplied),
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                    Center(
-                      child: Text('ПУСТЕНЬКО'),
-                    ),
-                  ],
-                ),
+                          initialData: {},
+                          builder: (context, snapshot) => snapshot.data.isEmpty
+                              ? Center(
+                                  child: Text('ПУСТЕНЬКО'),
+                                )
+                              : SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      ...intersperse(
+                                        const Divider(),
+                                        snapshot.data.entries
+                                            .where((element) => element.value.any((element) => element.plant.name
+                                                .toLowerCase()
+                                                .contains(controller.text.toLowerCase())))
+                                            .map(
+                                              (e) => ExpandablePanel(
+                                                theme: ExpandableThemeData(
+                                                  hasIcon: false,
+                                                  crossFadePoint: 0,
+                                                ),
+                                                header: Slidable(
+                                                  actionPane: SlidableScrollActionPane(),
+                                                  secondaryActions: [
+                                                    Row(
+                                                      children: [
+                                                        VerticalDivider(),
+                                                        Expanded(
+                                                          child: IconSlideAction(
+                                                            caption: 'Destroy',
+                                                            color: Colors.white,
+                                                            icon: CupertinoIcons.trash,
+                                                            onTap: () => context.read<SuppliesBloc>().add(
+                                                                  SuppliesEvent.removeMany(e.value),
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ],
+                                                  child: SizedBox(
+                                                    height: pItemHeight,
+                                                    child: Padding(
+                                                      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+                                                      child: Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          Text(
+                                                            e.key,
+                                                          ),
+                                                          Spacer(),
+                                                          Icon(CupertinoIcons.chevron_down),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                expanded: Column(
+                                                  children: [
+                                                    const Divider(),
+                                                    ...intersperse(
+                                                      const Divider(),
+                                                      e.value
+                                                          .where((element) => element.plant.name
+                                                              .toLowerCase()
+                                                              .contains(controller.text.toLowerCase()))
+                                                          .map(
+                                                            (e) => IntrinsicHeight(
+                                                              child: Row(
+                                                                children: intersperse(
+                                                                  const VerticalDivider(),
+                                                                  [
+                                                                    Expanded(
+                                                                      child: Padding(
+                                                                        padding: EdgeInsets.symmetric(
+                                                                            horizontal: 12.0, vertical: 16.0),
+                                                                        child: Text(e.plant.name),
+                                                                      ),
+                                                                    ),
+                                                                    Container(
+                                                                      width: 52,
+                                                                      child: Center(
+                                                                          child:
+                                                                              Text('${e.price.toStringAsFixed(0)} р.')),
+                                                                    ),
+                                                                    Container(
+                                                                      width: 52,
+                                                                      child: Center(
+                                                                        child: Text(
+                                                                            '${e.quantity - e.sold - e.trashed} ш.'),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ).toList(),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                      ),
+                                      const Divider(),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                        orElse: () => Container(),
+                      );
+                    },
+                  ),
+                  Center(
+                    child: Text('ПУСТЕНЬКО'),
+                  ),
+                ],
               ),
             ),
           ),
@@ -206,92 +302,128 @@ class _HomeGridWidgetState extends State<HomeGridWidget> with ScopeStateMixin, S
 }
 
 class PlantsWidget extends StatelessWidget {
-  final Iterable<Plant> plants;
+  final String search;
 
-  const PlantsWidget({Key key, @required this.plants}) : super(key: key);
+  const PlantsWidget({
+    Key key,
+    this.search,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (plants.isEmpty) {
-      return Center(
-        child: Text('ПУСТЕНЬКО'),
-      );
-    }
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ...intersperse(
-            const Divider(),
-            plants
-                .toList()
-                .asMap()
-                .entries
-                .map(
-                  (e) => Column(
+    return BlocBuilder<SuppliesBloc, SuppliesState>(
+      builder: (context, state) => state.maybeMap(
+        hasData: (value) => StreamBuilder<Iterable<Supply>>(
+          stream: value.supplies,
+          initialData: [],
+          builder: (context, snapshot) => snapshot.data?.isNotEmpty != true
+              ? Center(
+                  child: Text('ПУСТЕНЬКО'),
+                )
+              : SingleChildScrollView(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (e.value.images.isNotEmpty)
-                        Image.memory(
-                          e.value.images.first,
-                          fit: BoxFit.fitWidth,
-                        )
-                      else
-                        Image.network(
-                          'https://source.unsplash.com/random?key=${e.key}',
-                          fit: BoxFit.fitWidth,
-                        ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-                        child: Center(child: Text(e.value.name)),
+                      ...intersperse(
+                        const Divider(),
+                        groupBy<Supply, Plant>(
+                                snapshot.data.where(
+                                  (element) => element.plant.name.toLowerCase().contains(search.toLowerCase()),
+                                ),
+                                (s) => s.plant).entries.map(
+                              (e) => GestureDetector(
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailsWidget(plant: e.key),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    AspectRatio(
+                                      aspectRatio: pImageAspectRatio,
+                                      child: e.key.images.isNotEmpty
+                                          ? Image.memory(
+                                              e.key.images.first,
+                                              fit: BoxFit.fitWidth,
+                                            )
+                                          : Container(
+                                              color: Colors.grey,
+                                              child: Center(
+                                                child: Icon(CupertinoIcons.staroflife),
+                                              ),
+                                            ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+                                      child: Text(e.key.name),
+                                    ),
+                                    const Divider(),
+                                    Column(
+                                      children: e.value
+                                          .map(
+                                            (e) => Slidable(
+                                              actionPane: SlidableScrollActionPane(),
+                                              secondaryActions: [
+                                                Row(
+                                                  children: [
+                                                    VerticalDivider(),
+                                                    Expanded(
+                                                      child: IconSlideAction(
+                                                        caption: 'Destroy',
+                                                        color: Colors.red,
+                                                        icon: CupertinoIcons.trash,
+                                                        onTap: () => context.read<SuppliesBloc>().add(
+                                                              SuppliesEvent.remove(e),
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              ],
+                                              child: IntrinsicHeight(
+                                                child: Row(
+                                                  children: intersperse(
+                                                    const VerticalDivider(),
+                                                    [
+                                                      Expanded(
+                                                        child: Padding(
+                                                          padding:
+                                                              EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+                                                          child: Text(e.supplied.toString()),
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: 52,
+                                                        child: Center(child: Text('${e.price.toStringAsFixed(0)} р.')),
+                                                      ),
+                                                      Container(
+                                                        width: 52,
+                                                        child: Center(
+                                                            child: Text('${e.quantity - e.sold - e.trashed} ш.')),
+                                                      ),
+                                                    ],
+                                                  ).toList(),
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                       ),
                       const Divider(),
-                      IntrinsicHeight(
-                        child: Row(
-                          children: intersperse(const VerticalDivider(), [
-                            Expanded(
-                                child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-                              child: Text('Поставка 1'),
-                            )),
-                            Container(
-                              width: 52,
-                              child: Center(child: Text('\$133')),
-                            ),
-                            Container(
-                              width: 52,
-                              child: Center(child: Text('12')),
-                            ),
-                          ]).toList(),
-                        ),
-                      ),
-                      const Divider(),
-                      IntrinsicHeight(
-                        child: Row(
-                          children: intersperse(const VerticalDivider(), [
-                            Expanded(
-                                child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-                              child: Text('Поставка 1'),
-                            )),
-                            Container(
-                              width: 52,
-                              child: Center(child: Text('\$213')),
-                            ),
-                            Container(
-                              width: 52,
-                              child: Center(child: Text('5')),
-                            ),
-                          ]).toList(),
-                        ),
+                      const SizedBox(
+                        height: 96,
                       ),
                     ],
                   ),
-                )
-                .toList(),
-          ),
-          const Divider(),
-        ],
+                ),
+        ),
+        orElse: () => Container(),
       ),
     );
   }
